@@ -1,32 +1,31 @@
-// schema.prisma
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
 model User {
-  id            String    @id @default(uuid())
-  supabaseId    String    @unique
-  email         String    @unique
-  name          String?
-  avatarUrl     String?   //added
-  provider      String?   // 'google' or 'email'
-  bookings      Booking[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id         String    @id @default(uuid())
+  supabaseId String    @unique
+  email      String    @unique
+  name       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  avatarUrl  String?
+  provider   String?
+  bookings   Booking[]
 }
 
 model City {
-  id          String      @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   playgrounds Playground[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
 }
 
 model Playground {
@@ -34,41 +33,39 @@ model Playground {
   name      String
   address   String
   cityId    String
-  city      City     @relation(fields: [cityId], references: [id])
-  turfs     Turf[]
-  startTime String
-  endTime   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  endTime   String
+  startTime String
+  city      City     @relation(fields: [cityId], references: [id])
+  turfs     Turf[]
 }
 
 model Turf {
-  id           String    @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String
   type         TurfType
   playgroundId String
-  hourlyRate   Float
-  playground   Playground @relation(fields: [playgroundId], references: [id])
-  bookings     Booking[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  hourlyRate   Float
+  bookings     Booking[]
+  playground   Playground @relation(fields: [playgroundId], references: [id])
 }
 
-
-
 model Booking {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  turfId    String
-  turf      Turf     @relation(fields: [turfId], references: [id])
-  startTime DateTime
-  endTime   DateTime
-  totalCost Float
+  id              String        @id @default(uuid())
+  turfId          String
+  userEmail          String
+  startTime       DateTime
+  endTime         DateTime
+  totalCost       Float
   stripePaymentId String?
-  status    BookingStatus
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status          BookingStatus
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  turf            Turf          @relation(fields: [turfId], references: [id])
+  user            User          @relation(fields: [userEmail], references: [email])
 }
 
 enum TurfType {
@@ -78,8 +75,6 @@ enum TurfType {
   TENNIS
   BASKETBALL
 }
-
-
 
 enum BookingStatus {
   PENDING

@@ -7,12 +7,30 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
 import SportsSelector from '@/components/SportsSelector'
 import axios from 'axios';
 import debounce from 'lodash/debounce';
 import { Trash2, ShoppingCart, Clock } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid';
-import { loadStripe } from '@stripe/stripe-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import Header from "@/components/Header";
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+const supabase: SupabaseClient = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 
 type CartItem = {
@@ -24,60 +42,96 @@ type CartItem = {
   price: number
 }
 
-  //claude
+ 
   interface TurfTiming {
     startTime: string;
     endTime: string;
   }
 
-  //claude
+ 
   interface TurfBookingProps {
     turfId?: string;
   }
 
   interface TurfInfo {
+    id: string;
     name: string;
     hourlyRate: number;
   }
 
-  const stripePromise = loadStripe(import.meta.env.REACT_APP_STRIPE_PUBLIC_KEY!);
-
 export default function TurfBookingApp({turfId}:TurfBookingProps) {
 
-
+  const [date, setDate] = useState<Date | undefined>(undefined)
+  const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false)
+  const [timeSlots, setTimeSlots] = useState<string[]>(["05:00 PM", "05:30 PM", "06:00 PM", "06:30 PM", "07:00 PM", "07:30 PM", "08:00 PM", "08:30 PM", "09:00 PM", "09:30 PM"]);
+  const [time, setTime] = useState(timeSlots[0])
+  const [court, setCourt] = useState('')
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [turfs, setTurfs] = useState<TurfInfo[]>([]);
+  const [isTimePopoverOpen, setIsTimePopoverOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('No Error');
+  const {playgroundName,playgroundId} = useParams();
   const [selectedSport, setSelectedSport] = useState<string>('');
+  const [user, setUser] = useState<any>(null);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log(user);
+      setUser(user);
+    };
+    fetchUser();
+  }, []);
+  
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
     try {
-      const stripe = await stripePromise;
-      if (!stripe) throw new Error('Stripe failed to initialize');
-
       // Assume the first item in cart for simplicity. Adjust as needed for multiple items.
-      const item = cart[0];
+      console.log("cart is ", cart);
+      console.log("turf are: ", turfs);
+      const bookings = cart.map(item => {
+        const selectedTurf = turfs.find(turf => turf.name === item.court);
+        if (!selectedTurf) throw new Error(`Selected turf not found for ${item.court}`);
+  
+        console.log("selected turf is ", selectedTurf);
+        const startTime = new Date(`${item.date} ${item.time}`);
+        const endTime = new Date(startTime.getTime() + item.duration * 60 * 60 * 1000);
+  
+        return {
+          turfId: selectedTurf.id,
+          userEmail: user.email, // Assuming you have user object with id
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          totalCost: item.price,
+          status: 'PENDING',
+        };
+      });
       
-      const response = await fetch('/api/create-booking', {
+      console.log("bookings are ", bookings);
+      const response = await fetch(`${BACKEND_URL}/playgrounds/${playgroundId}/book`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          turfId: item.court,
-          startTime: new Date(`${item.date} ${item.time}`).toISOString(),
-          endTime: new Date(`${item.date} ${item.time}`).toISOString(), // Add duration to this
-        }),
+        body: JSON.stringify({ bookings }),
       });
 
-      const { sessionId } = await response.json();
-
-      // Redirect to Stripe Checkout
-      const result = await stripe.redirectToCheckout({
-        sessionId: sessionId,
-      });
-
-      if (result.error) {
-        // Handle any errors from Stripe Checkout
-        console.error(result.error);
+      if (!response.ok) {
+        if(response.status === 400){
+          setAlertMessage("This timeslot is already booked");
+          setIsAlertOpen(true);
+        }
       }
+      else{
+        setCart([]);
+        setAlertMessage('Bookings created successfully');
+        setIsAlertOpen(true);
+      }
+
+      
+
     } catch (error) {
       console.error('Error in checkout:', error);
     }
@@ -93,35 +147,42 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
     setCourt(court);
   }
 
-  const [date, setDate] = useState<Date | undefined>(undefined)
-  const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false)
-  const [timeSlots, setTimeSlots] = useState<string[]>(["05:00 PM", "05:30 PM", "06:00 PM", "06:30 PM", "07:00 PM", "07:30 PM", "08:00 PM", "08:30 PM", "09:00 PM", "09:30 PM"]);
-  const [time, setTime] = useState(timeSlots[0])
-  const [court, setCourt] = useState('')
-  const [cart, setCart] = useState<CartItem[]>([])
-  const [turfs, setTurfs] = useState<TurfInfo[]>([]);
-  const [isTimePopoverOpen, setIsTimePopoverOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('No Error');
 
-  const {playgroundId} = useParams();
 
 
   const addToCart = () => {
-    if (!court || !date || !time) return
+    if(cart.length === 1){
+      setAlertMessage("you can only book one turf at a time");
+      setIsAlertOpen(true);
+      return;
+    }
+    if (!court || !date || !time ) return
 
-      // Check if an item with the same court, date, and time already exists in the cart
-  const existingItem = cart.find(item => 
-    item.court === court &&
-    item.date === date.toLocaleDateString() &&
-    item.time === time
-  );
+    const selectedTurf = turfs.find(turf => turf.name === court);
+    if (!selectedTurf) {
+      setAlertMessage("Selected court not found. Please try again.");
+      setIsAlertOpen(true);
+      return;
+    }
 
-  if (existingItem) {
-    // If the item already exists, you can either show an alert or update the existing item
-    alert("This timeslot is already in your cart.");
-    return;
-  }
+    const isOverlapping = (existingStart: Date, existingEnd: Date, newStart: Date, newEnd: Date) => {
+      return (newStart < existingEnd && newEnd > existingStart);
+    };
+
+    const existingItem = cart.find(item => {
+      const existingStart = new Date(`${item.date} ${item.time}`);
+      const existingEnd = new Date(existingStart.getTime() + item.duration * 60 * 60 * 1000);
+      const newStart = new Date(`${date.toLocaleDateString()} ${time}`);
+      const newEnd = new Date(newStart.getTime() + duration * 60 * 60 * 1000);
+
+      return item.court === court && isOverlapping(existingStart, existingEnd, newStart, newEnd);
+    });
+
+    if (existingItem) {
+      setAlertMessage("This timeslot overlaps with an existing booking in your cart.");
+      setIsAlertOpen(true);
+      return;
+    }
 
     const newItem: CartItem = {
       id: uuidv4(),
@@ -129,7 +190,7 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
       date: date.toLocaleDateString(),
       time,
       duration,
-      price: 1000 * duration // Assuming 1000 INR per hour
+      price: selectedTurf.hourlyRate * duration // Assuming 1000 INR per hour
     }
     setCart([...cart, newItem])
 
@@ -140,7 +201,8 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
   setDuration(1);
 
   // Provide feedback to the user
-  alert("Item added to cart successfully!");
+  setAlertMessage("Item added to cart successfully!");
+  setIsAlertOpen(true);
   }
 
   const removeFromCart = (id: string) => {
@@ -156,7 +218,7 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
   const fetchTimings = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:3000/playgrounds/${playgroundId}/timings`);
+      const response = await axios.get(`${BACKEND_URL}/playgrounds/${playgroundId}/timings`);
       
       if (response.status === 200) {
         const turfTiming: TurfTiming = response.data;
@@ -176,7 +238,8 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
 
   const fetchTurfs = useCallback(async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/playgrounds/${playgroundId}/turfs/${selectedSport}`);
+      const response = await axios.get(`${BACKEND_URL}/playgrounds/${playgroundId}/turfs/${selectedSport}`);
+      console.log("turfs are ", response.data);
       setTurfs(response.data);
     } catch (error) {
       console.error('Error fetching turfs:', error);
@@ -205,10 +268,14 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
     setTickets(tickets + amount)
   }
   return (
+    <div>
+
+    
+    <Header/>
     <div className="flex flex-col gap-8 md:flex-row">
     <div className="max-w-lg mx-auto p-4">
-      <h1 className="text-2xl font-bold">Game Theory - Joseph's Indian Vittal Mallya Road</h1>
-      <p className="text-muted-foreground">St Joseph's</p>
+      <h1 className="text-2xl font-bold">Book Before The Slot Gets Occupied!!!</h1>
+      <p className="text-muted-foreground">{playgroundName}</p>
       <div className="my-4 p-2 bg-green-500 text-white text-center rounded-md">
         Earn 3 karma points on every booking!
       </div>
@@ -320,31 +387,7 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
     <CardHeader>
       <CardTitle>Cart ({cart.length})</CardTitle>
     </CardHeader>
-    {/* <CardContent>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <CalendarIcon className="h-4 w-4" />
-            <span>6 a side Turf 1</span>
-          </div>
-          <TrashIcon className="h-4 w-4 text-red-500" />
-        </div>
-        <div className="flex items-center space-x-2">
-          <CalendarIcon className="h-4 w-4" />
-          <span>03, September 2024</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <ClockIcon className="h-4 w-4" />
-          <span>05:00 PM to 07:00 PM</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <DollarSignIcon className="h-4 w-4" />
-          <span>INR 2000</span>
-        </div>
-        <div className="bg-gray-100 text-center py-2 rounded-md">Wohoo! You can now avail INR150 OFF 🎉.</div>
-        <Button className="w-full bg-green-500 text-white">Proceed INR 2000.00</Button>
-      </div>
-    </CardContent> */}
+   
     <CardContent>
           {cart.map(item => (
             <div key={item.id} className="flex justify-between items-center mb-4 p-4 bg-gray-100 rounded-lg">
@@ -362,12 +405,27 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
         </CardContent>
         <CardFooter className="flex justify-between">
           <p className="text-lg font-bold">Total: INR {totalPrice}</p>
-          <Button disabled={cart.length === 0} onChange={handleCheckout}>
+          <Button disabled={cart.length !== 1} onClick={handleCheckout}>
             <ShoppingCart className="mr-2 h-4 w-4" /> Checkout
           </Button>
         </CardFooter>
   </Card>
+  <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Booking Status</AlertDialogTitle>
+      <AlertDialogDescription>
+        {alertMessage}
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogAction onClick={() => setIsAlertOpen(false)}>OK</AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+  </AlertDialog>
   </div>
+  </div>
+  
   )
 }
 
@@ -521,3 +579,7 @@ function PlusIcon(props:any) {
     </svg>
   )
 }
+
+
+
+

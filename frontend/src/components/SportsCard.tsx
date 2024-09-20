@@ -12,7 +12,7 @@ const SportsCard: React.FC<SportsCardProps> = ({ turf }) => {
   const getIcon = () => {
     switch (turf.type) {
       case TurfType.FOOTBALL:
-        return <FaFootballBall className="w-5 h-5" />;
+        return <FaFootballBall className="w-12 h-15" />;
       case TurfType.CRICKET:
         return <FaBaseballBall className="w-5 h-5" />; 
       case TurfType.BADMINTON:
@@ -25,11 +25,11 @@ const SportsCard: React.FC<SportsCardProps> = ({ turf }) => {
   };
 
   return (
-          <div className="flex flex-col items-center py-1 border rounded shadow-md cursor-pointer hover:border-primary hover:border aspect-square border-border_color">
-              <span className="box-sizing: border-box; display: block; width: initial; height: initial; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; max-width: 100%;">
+          <div className="flex flex-col items-center py-1 border rounded shadow-md cursor-pointer hover:border-primary hover:border aspect-square border-border_color ">
+              <span className="box-sizing: border-box; display: block; width: initial; height: initial; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; max-width: 100%; mt-6">
               {getIcon()}
               </span>
-              <h3 className="flex justify-center w-full mt-1 text-xs font-medium text-center text-border_tag">Badminton</h3> 
+              <h3 className="flex justify-center w-full mt-1 text-xs font-medium text-center text-border_tag">{turf.type}</h3> 
           </div>    
        
   );

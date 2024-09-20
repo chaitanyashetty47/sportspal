@@ -34,13 +34,12 @@ interface Turf {
 
 
 export default function PlaygroundCard({playground}: {playground:Playground}) {
-  const displayTurfs = playground.turfs.slice(0, 3);
-  const remainingCount = Math.max(playground.turfs.length - 3, 0);
+  const displayTurfs = playground.turfs.slice(0, 1);
+  const remainingCount = Math.max(playground.turfs.length - 1, 0);
 
   return (
     <Card className="w-full max-w-sm">
-      <Link to={`/turf/${playground.name}/${playground.id}`}/>
-
+      <Link to={`/playground/${playground.name}/${playground.id}`}>
       <div className="grid grid-rows-[58%_42%] gap-0 rounded-lg overflow-hidden border_radius bg-white card_shadow pb-2 cursor-pointer transition duration-200 transform hover:scale-[1.02]">
         <img
           src={turfImg}
@@ -67,72 +66,8 @@ export default function PlaygroundCard({playground}: {playground:Playground}) {
           </div>
         </div>
       </div>
+      </Link>
     </Card>
   )
 }
 
-function BanIcon(props:any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="m4.9 4.9 14.2 14.2" />
-    </svg>
-  )
-}
-
-
-function BirdIcon(props:any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M16 7h.01" />
-      <path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20" />
-      <path d="m20 7 2 .5-2 .5" />
-      <path d="M10 18v3" />
-      <path d="M14 17.75V21" />
-      <path d="M7 18a6 6 0 0 0 3.84-10.61" />
-    </svg>
-  )
-}
-
-
-function ClubIcon(props:any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M17.28 9.05a5.5 5.5 0 1 0-10.56 0A5.5 5.5 0 1 0 12 17.66a5.5 5.5 0 1 0 5.28-8.6Z" />
-      <path d="M12 17.66L12 22" />
-    </svg>
-  )
-}

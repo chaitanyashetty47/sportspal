@@ -1,11 +1,13 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/server.js",
+    "dev": "npx nodemon src/server.ts",
+    "postinstall": "prisma generate && npm run build"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +19,7 @@
     "@types/stripe": "^8.0.416",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "dotenv-safe": "^9.1.0",
     "esbuild": "^0.23.0",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
@@ -32,5 +35,8 @@
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }

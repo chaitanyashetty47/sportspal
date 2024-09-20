@@ -18,6 +18,7 @@ export const getTurfsByPlayground = async (req: Request, res: Response) => {
 
 
 interface TurfInfo {
+  id: string;
   name: string;
   hourlyRate: number;
 }
@@ -35,6 +36,7 @@ async function getTurfsBySportAndPlayground(
         type: sportType,
       },
       select: {
+        id: true,
         name: true,
         hourlyRate: true,
       },

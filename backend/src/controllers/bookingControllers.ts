@@ -1,116 +1,121 @@
-import Stripe from 'stripe';
+import { Request, Response } from 'express';
+import { Booking } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-08-16' });
 
-export const createBooking = async (req: any, res: any) => {
-  const { turfId, startTime, endTime } = req.body;
-  
-  try {
-    // Calculate the total cost (you need to implement this logic)
-    const totalCost = calculateTotalCost(startTime, endTime);
-
-    // Create a Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'inr',
-            product_data: {
-              name: 'Turf Booking',
-            },
-            unit_amount: totalCost * 100, // Stripe uses cents
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/booking-cancelled`,
-    });
-
-    // Create a pending booking in the database
-    const booking = await prisma.booking.create({
-      data: {
-        userId: req.user.id,
-        turfId,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
-        totalCost,
-        status: 'PENDING',
-        stripePaymentId: session.id,
-      },
-    });
-
-    // Return the session ID to the client
-    res.json({ sessionId: session.id, bookingId: booking.id });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error: 'Failed to create booking' });
-  }
-};
-
-// Implement this function based on your pricing logic
-function calculateTotalCost(startTime: string, endTime: string): number {
-  // Your logic here
-  return 1000; // Example fixed price
+interface BookingData {
+  turfId: string;
+  userEmail: string;
+  startTime: string;
+  endTime: string;
+  totalCost: number;
+  status: string;
 }
 
-// Add a webhook handler to update the booking status when payment is completed
-export const handleStripeWebhook = async (req: any, res: any) => {
-  const sig = req.headers['stripe-signature'];
 
-  let event;
 
+export const createBookings = async (req: Request, res: Response) => {
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
-  } catch (err: any) {
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
+    const bookingData = req.body;
+    console.log('Received booking data:', bookingData);
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
-    
-    // Update the booking status to CONFIRMED
-    await prisma.booking.update({
-      where: { stripePaymentId: session.id },
-      data: { status: 'CONFIRMED' },
+    if (!bookingData.bookings || bookingData.bookings.length === 0) {
+      return res.status(400).json({ error: 'No booking data provided' });
+    }
+
+    const booking: BookingData = bookingData.bookings[0];
+    console.log('Processing booking:', booking);
+
+    if (!booking.userEmail) {
+      console.log('User email is missing. Booking object:', booking);
+      return res.status(400).json({ error: 'User email is required' });
+    }
+
+    // Find the user by email
+    const user = await prisma.user.findUnique({
+      where: { email: booking.userEmail }
     });
-  }
 
-  res.json({ received: true });
-};
+    if (!user) {
+      console.log('User not found for email:', booking.userEmail);
+      return res.status(400).json({ error: 'User not found' });
+    }
 
-// Update a booking
-//app.put('/bookings/:id', authMiddleware, 
-  export const updateBooking =  async (req: any, res:any) => {
-  const { id } = req.params;
-  const { startTime, endTime, status } = req.body;
-  try {
-    const booking = await prisma.booking.update({
-      where: { id },
-      data: { 
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
-        status,
+    // Check for overlapping bookings
+    const overlappingBooking = await prisma.booking.findFirst({
+      where: {
+        turfId: booking.turfId,
+        AND: [
+          {
+            startTime: {
+              lt: new Date(booking.endTime)
+            }
+          },
+          {
+            endTime: {
+              gt: new Date(booking.startTime)
+            }
+          }
+        ]
+      }
+    });
+
+    if (overlappingBooking) {
+      console.log('Overlapping booking found:', overlappingBooking);
+      return res.status(400).json({ error: 'This time slot is already booked' });
+    }
+
+    const createdBooking = await prisma.booking.create({
+      data: {
+        startTime: new Date(booking.startTime),
+        endTime: new Date(booking.endTime),
+        totalCost: booking.totalCost,
+        turfId: booking.turfId,
+        userEmail: booking.userEmail,
+        status: 'CONFIRMED',
+      },
+      include: {
+        turf: true,
+        user: true,
       },
     });
-    res.json(booking);
+    res.status(201).json(createdBooking);
   } catch (error) {
-    res.status(400).json({ error: 'Failed to update booking' });
+    console.error('Failed to create booking:', error);
+    res.status(500).json({ error: 'Failed to create booking' });
   }
 };
 
-// Delete a booking
-//app.delete('/bookings/:id', authMiddleware, 
-  export const deleteBooking = async (req: any, res:any) => {
-  const { id } = req.params;
+export const getBookingsByUser = async (req: Request, res: Response) => {
   try {
-    await prisma.booking.delete({ where: { id } });
-    res.json({ message: 'Booking deleted successfully' });
+    const { userEmail } = req.params;
+    const bookings = await prisma.booking.findMany({
+      where: {
+        userEmail: userEmail,
+      },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        totalCost: true,
+        status: true,
+        turf: {
+          select: {
+            name: true,
+            playground:{
+              select:{
+                name:true,
+              }
+            }
+         }
+        }
+      }
+    });
+    res.status(200).json(bookings);
   } catch (error) {
-    res.status(400).json({ error: 'Failed to delete booking' });
+    console.error('Failed to get bookings by user:', error);
+    res.status(500).json({ error: 'Failed to get bookings by user' });
   }
 };

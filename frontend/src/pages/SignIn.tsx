@@ -6,7 +6,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Card, CardContent } from "@/components/ui/card"
 import { EyeIcon, EyeOffIcon } from "lucide-react"
 import { useNavigate } from 'react-router-dom';
-
+import axios from 'axios'; 
 
 type FormData = {
   email: string
@@ -28,11 +28,25 @@ export default function Signin() {
 
  
   const onSubmit = async (data: FormData) => {
-    const { error } = await supabase.auth.signInWithPassword(data);
-    if (error) console.error('Error signing in:', error.message);
-    else {
-      console.log('Sign in successfully');
-      navigate('/home');
+    try {
+      const { data: authData, error } = await supabase.auth.signInWithPassword(data);
+      
+      if (error) throw error;
+
+      console.log('Sign in successful');
+
+   
+      if (authData) {
+        // Now, create or update user in your PostgreSQL database
+        await axios.post('http://localhost:3000/users', {
+          supabaseId: authData.user.id,
+          email: authData.user.email
+        });
+
+        navigate('/home');
+      }
+    } catch (error) {
+      console.error('Error during sign in process:', error);
     }
   };
 
@@ -97,7 +111,7 @@ export default function Signin() {
               LOG IN
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-gray-500">
+          {/* <div className="mt-4 text-center text-sm text-gray-500">
             <span className="px-2 bg-white relative z-10">or</span>
             <hr className="border-gray-300 mt-[-0.7em]" />
           </div>
@@ -112,10 +126,10 @@ export default function Signin() {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
             Sign in with Google
-          </Button>
+          </Button> */}
           <div className="mt-6 text-center text-sm">
             <span className="text-gray-600">Don't have an account yet? </span>
-            <a href="#" className="text-green-600 hover:text-green-700 font-semibold">
+            <a href="/signup" className="text-green-600 hover:text-green-700 font-semibold">
               CREATE ONE NOW
             </a>
           </div>

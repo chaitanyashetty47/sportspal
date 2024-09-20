@@ -20,13 +20,11 @@ export interface TurfTiming {
 export interface Turf {
   id: string;
   name: string;
-  type: TurfType; // Enum for turf types
+  type: TurfType;
   playgroundId: string;
-  playground: Playground; // Assuming Playground is populated
-  bookings: Booking[]; // Assuming Booking[] is populated
+  hourlyRate: number;
   createdAt: string; // ISO Date string
   updatedAt: string; // ISO Date string
-  timing: TurfTiming[]; // Array of TurfTiming objects
 }
 
 // Interface for TurfType Enum
@@ -38,12 +36,12 @@ export enum TurfType {
 
 // Interface for Playground (simplified)
 export interface Playground {
-  id: string;
   name: string;
   address: string;
   city: City;
-  turfs: Turf[]
-  // Other fields as necessary
+  turfs: Turf[];
+  startTime: string;
+  endTime: string;
 }
 
 export interface City {

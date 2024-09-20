@@ -47,6 +47,8 @@ export const getPlaygrounds = async (req:Request, res:Response) => {
         address: true,
         name: true,
         turfs: true,
+        startTime: true,
+        endTime: true,
       },
     });
     
@@ -106,5 +108,24 @@ export const getTimingsByPlayground = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error fetching playground timings' });
   }
 };
+
+//return plyground by turf id
+export const getPlaygroundByTurfId = async (req: Request, res: Response) => {
+  const { turfId } = req.params;
+  try {
+    const playground = await prisma.playground.findUnique({
+      where: { id: turfId },
+      select: {
+        id: true,
+        name: true,
+        address: true,
+      },
+    });
+    res.json(playground);
+  } catch (error) {
+    console.error('Error fetching playground by turf id:', error);
+    res.status(500).json({ error: 'Error fetching playground by turf id' });
+  }
+};  
 
 

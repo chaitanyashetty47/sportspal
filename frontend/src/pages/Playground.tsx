@@ -1,22 +1,27 @@
 import Header from '@/components/Header';
 import SportsCard from '@/components/SportsCard';
 import { Playground,Turf } from '@/types/interface'; 
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import turfImg from "../assets/turf.png";
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function PlaygroundDisplay() {
 
+  const navigate = useNavigate();
   const [playground, setPlayground] = useState<Playground>();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('No Error');
+  const [error, setError] = useState<string | null>(null);
   const {playgroundName, playgroundId } = useParams();
 
   useEffect(() => {
     const fetchTurf = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`/api/turfs/${playgroundName}/${playgroundId}`);
+        const response = await axios.get(`${BACKEND_URL}/playgrounds/${playgroundId}`);
         setPlayground(response.data);
       } catch (err) {
         setError('Failed to fetch turf data');
@@ -30,17 +35,17 @@ function PlaygroundDisplay() {
   }, [playgroundId]);
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (error) return <div>Error: {error}</div>;
   if (!playground) return <div>No playground found</div>;
 
   return (
     <div>
       <Header/>
-      <div className='mx-4 lg:mx-20 mt-12 md:mt-20'>
+      <div className='mx-4 lg:mx-20 mt-12 md:mt-10'>
         <nav className="flex items-center flex-wrap text-gray-500 text-sm font-medium ">
-          <a className="hover:text-primary hover:underline" href="/venues">Venues</a>
+          <a className="hover:text-primary hover:underline" href="/home">Venues</a>
           <span className="mx-2">&gt;</span>
-          <a className="hover:text-primary hover:underline" href="/venues/mumbai/sports/all">Mumbai</a>
+          <a className="hover:text-primary hover:underline" href="/home">Mumbai</a>
           <span className="mx-2">&gt;</span><span>{playgroundName}</span>
         </nav> 
        
@@ -50,7 +55,7 @@ function PlaygroundDisplay() {
             <div className="grid w-full md:h-24 grid-flow-row-dense grid-cols-3 grid-rows-2 gap-y-1 md:gap-y-0 md:gap-x-5 ">
               
               <div className="w-full col-span-3">
-                <h1 className="md:font-bold md:text-[32px] md:leading-[36px] font-bold text-[24px] leading-[36px] text-typography overflow-hidden md:whitespace-nowrap whitespace-normal">Battlefield-Little Angels Turf</h1>
+                <h1 className="md:font-bold md:text-[32px] md:leading-[36px] font-bold text-[24px] leading-[36px] text-typography overflow-hidden md:whitespace-nowrap whitespace-normal">{playground.name}</h1>
               </div>
               
               <div className ="flex items-center w-full col-span-3 md:col-span-2">
@@ -63,7 +68,8 @@ function PlaygroundDisplay() {
                 <div className="flex flex-col items-center justify-start w-full space-y-3">
                   <div className="w-full ">
                     <div>
-                      <button className="w-full h-12 px-3 py-2 font-semibold text-white border_radius bg-primary" > Book Now
+                      <button className="w-full h-12 px-3 py-2 font-semibold text-white border_radius bg-primary"
+                      onClick={() => navigate(`/book/${playgroundName}/${playgroundId}`)} > Book Now
                         </button>
                     </div>
 
@@ -83,12 +89,21 @@ function PlaygroundDisplay() {
           </div>
 
           <div className="grid w-full grid-cols-1 gap-2 mt-6 md:gap-x-5 md:grid-cols-3">
-            <div className="hidden w-full row-span-1 bg-opacity-50 border_radius backdrop-blur-lg bg-surface md:block md:col-span-2 "></div>
+            <div className="hidden w-full row-span-1 bg-opacity-50 border_radius backdrop-blur-lg bg-surface md:block md:col-span-2 ">
+              <img
+                src={turfImg}
+                alt="Turf Cover Image"
+                width={495}
+                height={185}
+                className="object-cover w-full h-full"
+                style={{ aspectRatio: "495/185", objectFit: "cover" }}
+              />
+            </div>
             <div className="w-full border_radius z-0 md:row-span-2">
               <div className="flex flex-col md:mt-14 ">
                 <div className="flex flex-col p-4 border border_radius border-border_color ">
                   <h2 className="font-semibold text-md md:text-lg">Timing</h2>
-                  <div className="mt-2 leading-1">6PM - 11PM</div>
+                  <div className="mt-2 leading-1">{playground.startTime} - {playground.endTime}</div>
                 </div>
                 <div className="flex flex-col h-auto p-4 mt-5 border border_radius border-border_color ">
                   <div className="font-semibold text-md md:text-lg">Location</div>

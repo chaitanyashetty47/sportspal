@@ -30,9 +30,9 @@ const SportsIcon: React.FC<Turf> = ({ turf }) => {
     <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
       <div className="flex items-center">
         {getIcon()}
-        <span className="ml-2">{turf.name}</span>
+        {/* <span className="ml-2">{turf.name}</span> */}
       </div>
-      <span>₹{turf.hourlyRate}/hour</span>
+      {/* <span>₹{turf.hourlyRate}/hour</span> */}
     </div>
   );
 };

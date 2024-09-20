@@ -1,0 +1,22 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const playgroundRoutes_1 = __importDefault(require("./routes/playgroundRoutes"));
+const turfRoutes_1 = __importDefault(require("./routes/turfRoutes"));
+const sportRoutes_1 = __importDefault(require("./routes/sportRoutes"));
+const bookingRoutes_1 = __importDefault(require("./routes/bookingRoutes"));
+const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
+const app = (0, express_1.default)();
+app.use((0, cors_1.default)());
+app.use(express_1.default.json());
+//app.use(authMiddleware);
+app.use('/playgrounds', playgroundRoutes_1.default);
+app.use('/playgrounds', turfRoutes_1.default);
+app.use('/playgrounds', sportRoutes_1.default);
+app.use('/playgrounds', bookingRoutes_1.default);
+app.use('/users', userRoutes_1.default);
+exports.default = app;
