@@ -1,8 +1,7 @@
 import  { useState, useEffect } from 'react';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import Header from '@/components/Header';
 import PlaygroundCard from '@/components/PlaygroundCard';
-import { useUser } from '@/hooks/useUser';
+//import { useUser } from '@/hooks/useUser';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -27,7 +26,7 @@ export default function Home() {
   // const [user, setUser] = useState<any>(null);
   const [playgrounds, setPlaygrounds] = useState<Playground[]>([]);
   const [filteredPlaygrounds, setFilteredPlaygrounds] = useState<Playground[]>([]);
-  const { user, logout } = useUser();
+ // const { user } = useUser();
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -75,8 +74,8 @@ export default function Home() {
   return (
     <div>
       <Header onSearch={handleSearch}  />
-      <h1>Welcome to the Sports Turf Booking System</h1>
-      {user && <p>Logged in as: {user.email}</p>}
+      {/* <h1>Welcome to the Sports Turf Booking System</h1> */}
+      {/* {user && <p>Logged in as: {user.email}</p>} */}
       {searchQuery && <p>Search results for: {searchQuery}</p>}
       <div className='lg:mx-20 mt-8'>
         <div className='grid w-full grid-cols-1 justify-items-center'>

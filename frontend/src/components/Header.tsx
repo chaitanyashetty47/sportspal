@@ -30,7 +30,7 @@ export default function Header({ onSearch }: HeaderProps) {
   };
 
   // Check if the current path is Playground or Booking, and hide search bar accordingly
-  const hideSearchBar = location.pathname.includes('/playground') || location.pathname.includes('/book');
+  const hideSearchBar = location.pathname.includes('/playground') || location.pathname.includes('/book') || location.pathname.includes('/profile');
 
   return (
     <header className="flex items-center justify-between h-16 px-4 bg-background border-b md:px-6">
@@ -54,17 +54,12 @@ export default function Header({ onSearch }: HeaderProps) {
 
       <div className="flex items-center gap-4">
         <Link
-          to="#"
+          to="/profile"
           className="text-muted-foreground hover:text-foreground hover:underline hover:text-green-500"
         >
-          Book
+          Bookings
         </Link>
-        <Link
-          to="#"
-          className="text-muted-foreground hover:text-foreground hover:underline hover:text-green-500"
-        >
-          Play
-        </Link>
+      
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -77,7 +72,7 @@ export default function Header({ onSearch }: HeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem><Link to="/profile">My Account</Link></DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              {/* <DropdownMenuItem>Settings</DropdownMenuItem> */}
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleSignOut}>Logout</DropdownMenuItem>
             </DropdownMenuContent>

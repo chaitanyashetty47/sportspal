@@ -10,6 +10,7 @@
   ],
   "compilerOptions": {
     "baseUrl": ".",
+    "noUnusedParameters": false,
     "paths": {
       "@/*": ["./src/*"]
     }

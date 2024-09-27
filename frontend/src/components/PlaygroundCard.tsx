@@ -34,7 +34,7 @@ interface Turf {
 
 
 export default function PlaygroundCard({playground}: {playground:Playground}) {
-  const displayTurfs = playground.turfs.slice(0, 1);
+  const displayTurfs = playground.turfs.slice(0, 2);
   const remainingCount = Math.max(playground.turfs.length - 1, 0);
 
   return (

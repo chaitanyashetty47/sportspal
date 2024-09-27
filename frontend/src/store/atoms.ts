@@ -1,6 +1,6 @@
-import { atom, selector } from 'recoil';
+// import { atom, selector } from 'recoil';
 
-type TokenType = string | null; // Define a type for the token
+// type TokenType = string | null; // Define a type for the token
 
 // const tokenAtom = atom<TokenType>({
 //   key: 'authToken',

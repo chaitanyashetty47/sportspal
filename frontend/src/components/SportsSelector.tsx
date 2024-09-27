@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 interface Sport {
   type: string;
 }
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface SportsSelectorProps {
   onSportChange: (sport: string) => void;
@@ -22,7 +24,7 @@ export default function SportsSelector({ onSportChange }: SportsSelectorProps) {
     const fetchSportsOptions = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`http://localhost:3000/playgrounds/${playgroundId}/sports`);
+        const response = await fetch(`${BACKEND_URL}/playgrounds/${playgroundId}/sports`);
         if (!response.ok) {
           throw new Error('Failed to fetch sports options');
         }

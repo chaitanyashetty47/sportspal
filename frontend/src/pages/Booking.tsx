@@ -20,7 +20,7 @@ import {
 import SportsSelector from '@/components/SportsSelector'
 import axios from 'axios';
 import debounce from 'lodash/debounce';
-import { Trash2, ShoppingCart, Clock } from 'lucide-react'
+import { Trash2, ShoppingCart } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import Header from "@/components/Header";
@@ -49,9 +49,9 @@ type CartItem = {
   }
 
  
-  interface TurfBookingProps {
-    turfId?: string;
-  }
+  // interface TurfBookingProps {
+  //   turfId?: string;
+  // }
 
   interface TurfInfo {
     id: string;
@@ -59,7 +59,7 @@ type CartItem = {
     hourlyRate: number;
   }
 
-export default function TurfBookingApp({turfId}:TurfBookingProps) {
+export default function TurfBookingApp() {
 
   const [date, setDate] = useState<Date | undefined>(undefined)
   const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false)
@@ -69,8 +69,8 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [turfs, setTurfs] = useState<TurfInfo[]>([]);
   const [isTimePopoverOpen, setIsTimePopoverOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('No Error');
+  // const [loading, setLoading] = useState(true);
+  // const [ error, setError] = useState('No Error');
   const {playgroundName,playgroundId} = useParams();
   const [selectedSport, setSelectedSport] = useState<string>('');
   const [user, setUser] = useState<any>(null);
@@ -143,9 +143,9 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
     setSelectedSport(sport);
   }, []);
 
-  const handleCourtChange = (court: string) => {
-    setCourt(court);
-  }
+  // const handleCourtChange = (court: string) => {
+  //   setCourt(court);
+  // }
 
 
 
@@ -217,7 +217,7 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
   
   const fetchTimings = useCallback(async () => {
     try {
-      setLoading(true);
+     
       const response = await axios.get(`${BACKEND_URL}/playgrounds/${playgroundId}/timings`);
       
       if (response.status === 200) {
@@ -229,10 +229,10 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
         throw new Error('Failed to fetch turf timing');
       }
     } catch (err) {
-      setError('Failed to fetch turf data');
+      //setError('Failed to fetch turf data');
       console.error(err);
     } finally {
-      setLoading(false);
+      //setLoading(false);
     }
   }, [playgroundId]);
 
@@ -260,13 +260,13 @@ export default function TurfBookingApp({turfId}:TurfBookingProps) {
 
 
   const [duration, setDuration] = useState(1)
-  const [tickets, setTickets] = useState(0)
+ 
   const handleDurationChange = (amount:number) => {
     setDuration(duration + amount)
   }
-  const handleTicketChange = (amount:number) => {
-    setTickets(tickets + amount)
-  }
+  // const handleTicketChange = (amount:number) => {
+  //   setTickets(tickets + amount)
+  // }
   return (
     <div>
 
@@ -468,73 +468,6 @@ function ClockIcon(props:any) {
     >
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
-    </svg>
-  )
-}
-
-function DollarSignIcon(props:any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="12" x2="12" y1="2" y2="22" />
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-    </svg>
-  )
-}
-
-
-function TrashIcon(props:any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 6h18" />
-      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-    </svg>
-  )
-}
-
-
-function FishIcon(props:any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z" />
-      <path d="M18 12v.5" />
-      <path d="M16 17.93a9.77 9.77 0 0 1 0-11.86" />
-      <path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33" />
-      <path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4" />
-      <path d="m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98" />
     </svg>
   )
 }

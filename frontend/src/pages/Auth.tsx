@@ -13,6 +13,8 @@ type FormData = {
   password: string
 }
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const supabase: SupabaseClient = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -45,7 +47,7 @@ export default function AuthForm() {
 
       if (authData && authData.user) {
         // Create or update user in your PostgreSQL database
-        await axios.post('http://localhost:3000/users', {
+        await axios.post(`${BACKEND_URL}/users`, {
           supabaseId: authData.user.id,
           email: authData.user.email
         })
