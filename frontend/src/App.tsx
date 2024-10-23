@@ -62,18 +62,27 @@ const AuthWrapper = () => {
     checkAuth();
   }, [navigate]);
 
-  if (isAuthenticated === null) {
-    // Still checking authentication status
-    return <div>
-      <Skeleton/>
-      <Skeleton/>
-      <Skeleton/>
-      <Skeleton/>
-      <Skeleton/> 
-    </div>;
-  }
+  // if (isAuthenticated === null) {
+  //   // Still checking authentication status
+  //   // return <div>
+  //   //   <Skeleton/>
+  //   //   <Skeleton/>
+  //   //   <Skeleton/>
+  //   //   <Skeleton/>
+  //   //   <Skeleton/> 
+  //   // </div>;
+  // }
 
-  return isAuthenticated ? null : <AuthForm />;
+  return isAuthenticated === null ? 
+  <>
+      <Skeleton/>
+      <Skeleton/>
+      <Skeleton/>
+      <Skeleton/>
+      <Skeleton/>  
+  
+  </>
+  : <AuthForm />;
 };
 
 export default function App() {

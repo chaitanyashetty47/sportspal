@@ -67,7 +67,7 @@ export default function AuthForm() {
             <h1 className="text-3xl font-bold text-green-600">Repro</h1>
           </div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
+           <div>
               <Input 
                 type="email" 
                 placeholder="Email Address" 
@@ -82,6 +82,7 @@ export default function AuthForm() {
               />
               {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
             </div>
+            
             <div className="relative">
               <Input 
                 type={showPassword ? "text" : "password"}
